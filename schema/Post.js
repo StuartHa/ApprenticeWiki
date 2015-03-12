@@ -5,7 +5,13 @@ var mongoose = require('mongoose'),
 var Schema = mongoose.Schema;
 
 var fields = {
-    title: {type: String, required: true},
+    title: {
+        type: String,
+        required: true,
+        validate: function(str) {
+            return str !== ''
+        }
+    },
     body: {type: String, required: true},
     timestamp: {type: Date, default: function() { return new Date() }}
 }

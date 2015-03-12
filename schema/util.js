@@ -1,5 +1,11 @@
 'use strict'
 
+/*
+ * Generates a validation function for a given fields object
+ * @param {Object} fields - Object where each key may have the 'required' property and an
+ * optional 'validate' property
+ * @returns {Function} Validation function
+ */
 exports.fieldValidation = function (fields) {
     var requiredFields = {}
     for (var key in fields) {

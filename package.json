@@ -15,5 +15,8 @@
   "bugs": {
     "url": "https://github.com/StuartHa/ApprenticeWiki/issues"
   },
-  "homepage": "https://github.com/StuartHa/ApprenticeWiki"
+  "homepage": "https://github.com/StuartHa/ApprenticeWiki",
+  "devDependencies": {
+    "should": "^5.1.0"
+  }
 }
