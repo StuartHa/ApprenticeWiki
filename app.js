@@ -12,6 +12,7 @@ app.get('/', function(req, res) {
     res.send('thanks')
 })
 
-require('./schema/Post')()
+require('./schema/Post').init(app)
+require('./api/posts')(app)
 
 app.listen(3000)

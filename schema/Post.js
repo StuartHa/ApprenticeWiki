@@ -1,14 +1,19 @@
 'use strict'
 
-var mongoose = require('mongoose');
+var mongoose = require('mongoose'),
+    util = require('./util')
 var Schema = mongoose.Schema;
 
-module.exports = function() {
-    var postSchema = new Schema({
-        title: String,
-        body: String,
-        timestamp: Date
-    })
+var fields = {
+    title: {type: String, required: true},
+    body: {type: String, required: true},
+    timestamp: {type: Date, default: function() { return new Date() }}
+}
 
-    mongoose.model('Post', postSchema)
+exports.fieldValidation = util.fieldValidation(fields)
+
+exports.init = function(app) {
+    var postSchema = new Schema(fields)
+
+    app.db.model('Post', postSchema)
 }
