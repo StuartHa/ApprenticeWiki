@@ -132,6 +132,95 @@ describe('posts', function() {
 
         })
     })
+
+    describe('delete', function () {
+        it('should fail when given an invalid id', function (done) {
+            request(app)
+                .delete('/posts/12345')
+                .expect(400)
+                .end(function(err, res) {
+                    res.text.should.equal('Invalid id, must be hex string of length 24')
+                    done()
+                })
+        })
+
+        it('should delete post with given id', function (done) {
+            var _id = '55012b0818d0a4d628562003'
+            async.series([
+                function(cb) {
+                    var post = new app.db.models.Post({
+                        _id: new mongoose.Types.ObjectId(_id),
+                        title: 'ATitle',
+                        body: 'ABody'
+                    })
+                    post.save(cb)
+                },
+                function(cb) {
+                    request(app)
+                        .delete('/posts/' + _id)
+                        .expect(200)
+                        .end(function() {
+                            app.db.models.Post.find(function(err, posts) {
+                                posts.length.should.equal(0)
+                                done()
+                            })
+                        })
+                }
+            ])
+        })
+    })
+
+    describe('update', function () {
+        it('should fail when given an invalid id', function (done) {
+            request(app)
+                .put('/posts/12345?title=NewTitle&body=NewBody')
+                .expect(400)
+                .end(function(err, res) {
+                    res.text.should.equal('Invalid id, must be hex string of length 24')
+                    done()
+                })
+        })
+
+        it('should not accept empty title', function (done) {
+            request(app)
+                .put('/posts/12345?title=&body=NewBody')
+                .expect(400)
+                .end(function(err, res) {
+                    res.text.should.equal('Validation failed for field title:')
+                    done()
+                })
+        })
+
+        it('should update post with given id', function (done) {
+            var _id = '55012b0818d0a4d628562003'
+            async.series([
+                function(cb) {
+                    var post = new app.db.models.Post({
+                        _id: new mongoose.Types.ObjectId(_id),
+                        title: 'ATitle',
+                        body: 'ABody'
+                    })
+                    post.save(cb)
+                },
+                function(cb) {
+                    request(app)
+                        .put('/posts/' + _id + '?title=NewTitle&body=NewBody')
+                        .expect(200)
+                        .end(function() {
+                            app.db.models.Post.find(function(err, posts) {
+                                posts.length.should.equal(1)
+                                var updatedPost = posts[0].fields()
+                                updatedPost._id.should.equal(_id)
+                                updatedPost.title.should.equal('NewTitle')
+                                updatedPost.body.should.equal('NewBody')
+                                updatedPost.timestamp.should.be.ok
+                                done()
+                            })
+                        })
+                }
+            ])
+        })
+    })
 })
 
 describe('schema/util', function() {

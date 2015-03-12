@@ -72,4 +72,50 @@ module.exports = function(app) {
             }
         })
     })
+
+    app.put('/posts/:postId', function(req, res) {
+        var err = fieldValidation(req.query)
+
+        if (err) {
+            res.status(400)
+                .send(err)
+            return
+        }
+
+        if (!isObjectId(req.params.postId)) {
+            res.status(400)
+                .send('Invalid id, must be hex string of length 24')
+            return
+        }
+
+        app.db.models.Post.update(
+            { _id: new mongoose.Types.ObjectId(req.params.postId)},
+            {$set: {title: req.query.title, body: req.query.body, timestamp: new Date()} },
+            function(err) {
+                if (err) {
+                    res.status(500)
+                        .send('database error')
+                } else {
+                    res.send('success')
+                }
+            }
+        )
+    })
+
+    app.delete('/posts/:postId', function(req, res) {
+        if (!isObjectId(req.params.postId)) {
+            res.status(400)
+                .send('Invalid id, must be hex string of length 24')
+            return
+        }
+
+        app.db.models.Post.remove({ _id: new mongoose.Types.ObjectId(req.params.postId)}, function(err) {
+            if (err) {
+                res.status(500)
+                    .send('database error')
+            } else {
+                res.send('success')
+            }
+        })
+    })
 }
