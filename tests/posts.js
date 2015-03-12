@@ -1,6 +1,45 @@
 'use strict'
 
-var should = require('should')
+var should = require('should'),
+    app = require('../app'),
+    request = require('supertest')
+
+describe('posts', function() {
+
+    beforeEach(function(done) {
+        app.db.models.Post.remove(done)
+    })
+
+    describe('create', function () {
+        it('should reject a request with missing query params', function(done) {
+            request(app)
+                .post('/posts?title=Donnie%20Darko')
+                .expect(400, done)
+        })
+
+        it('should reject a request with empty title', function(done) {
+            request(app)
+                .post('/posts?title=&body=Hi%20there')
+                .expect(400, done)
+        })
+
+        it('should create a database entry on valid request', function(done) {
+            request(app)
+                .post('/posts?title=Hello&body=JustATest')
+                .expect(200)
+                .end(function() {
+                    app.db.models.Post.find(function(err, posts) {
+                        posts.length.should.equal(1)
+                        var createdPost = posts[0]
+                        createdPost.title.should.equal('Hello')
+                        createdPost.body.should.equal('JustATest')
+                        createdPost.timestamp.should.be.ok
+                        done()
+                    })
+                })
+        })
+    })
+})
 
 describe('schema/util', function() {
     describe('fieldValidation', function () {

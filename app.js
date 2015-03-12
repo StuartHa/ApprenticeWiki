@@ -16,3 +16,5 @@ require('./schema/Post').init(app)
 require('./api/posts')(app)
 
 app.listen(3000)
+
+module.exports = app
