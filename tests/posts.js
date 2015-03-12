@@ -2,7 +2,9 @@
 
 var should = require('should'),
     app = require('../app'),
-    request = require('supertest')
+    request = require('supertest'),
+    async = require('async'),
+    mongoose = require('mongoose')
 
 describe('posts', function() {
 
@@ -37,6 +39,97 @@ describe('posts', function() {
                         done()
                     })
                 })
+        })
+    })
+
+    describe('get', function () {
+        it('should fail when given an invalid id', function (done) {
+            request(app)
+                .get('/posts/12345')
+                .expect(400)
+                .end(function(err, res) {
+                    res.text.should.equal('Invalid id, must be hex string of length 24')
+                    done()
+                })
+        })
+
+        it('should fail when given a valid id that doesn\'t exist', function (done) {
+            request(app)
+                .get('/posts/15012b0818d0a4d628562003')
+                .expect(400)
+                .end(function(err, res) {
+                    res.text.should.equal('No post found with given id')
+                    done()
+                })
+        })
+
+        it('should return post with given id', function (done) {
+            var _id = '55012b0818d0a4d628562003'
+            async.series([
+                function(cb) {
+                    var post = new app.db.models.Post({
+                        _id: new mongoose.Types.ObjectId(_id),
+                        title: 'ATitle',
+                        body: 'ABody'
+                    })
+                    post.save(cb)
+                },
+                function(cb) {
+                    request(app)
+                        .get('/posts/' + _id)
+                        .expect(200)
+                        .end(function(err, res) {
+                            var post = JSON.parse(res.text)
+                            post.title.should.equal('ATitle')
+                            post.body.should.equal('ABody')
+                            post.timestamp.should.be.ok
+                            post._id.should.equal(_id)
+                            done()
+                        })
+                }
+            ])
+
+
+        })
+    })
+
+    describe('getAll', function () {
+        it('should return an empty array when database is empty', function (done) {
+            request(app)
+                .get('/posts')
+                .expect(200)
+                .end(function(err, res) {
+                    res.text.should.equal('[]')
+                    done()
+                })
+        })
+
+        it('should return an item when database has items', function (done) {
+            async.series([
+                function(cb) {
+                    var post = new app.db.models.Post({
+                        title: 'ATitle',
+                        body: 'ABody'
+                    })
+                    post.save(cb)
+                },
+                function(cb) {
+                    request(app)
+                        .get('/posts')
+                        .expect(200)
+                        .end(function(err, res) {
+                            var jsonRes = JSON.parse(res.text)
+                            var post = jsonRes[0]
+                            post.title.should.equal('ATitle')
+                            post.body.should.equal('ABody')
+                            post.timestamp.should.be.ok
+                            post._id.should.be.ok
+                            done()
+                        })
+                }
+            ])
+
+
         })
     })
 })

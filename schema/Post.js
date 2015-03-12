@@ -21,5 +21,14 @@ exports.fieldValidation = util.fieldValidation(fields)
 exports.init = function(app) {
     var postSchema = new Schema(fields)
 
+    postSchema.methods.fields = function() {
+        return {
+            _id: this._id.toString(),
+            title: this.title,
+            body: this.body,
+            timestamp: this.timestamp
+        }
+    }
+
     app.db.model('Post', postSchema)
 }
